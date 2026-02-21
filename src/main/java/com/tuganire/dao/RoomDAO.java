@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Hibernate-based DAO for Room and RoomMember. No raw SQL/JDBC.
+ * Hibernate-based DAO for Room and RoomMember.
  */
 public class RoomDAO {
 

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Hibernate-based DAO for User entity. No raw SQL/JDBC.
+ * Hibernate-based DAO for User entity.
  */
 public class UserDAO {
 

@@ -1,4 +1,4 @@
-# Tuganire — Real-Time Chat Application
+# Tuganire: Real-Time Chat Application
 
 **Tuganire** ("Let's Talk" in Kinyarwanda) is a full-stack real-time chat application built with pure Java EE — no Spring, no frameworks.
 
@@ -6,7 +6,7 @@
 
 - **Frontend:** JSP + JSTL + HTML5 + CSS3 + Vanilla JavaScript
 - **Backend:** Jakarta EE Servlets
-- **Real-Time:** Java WebSocket API (`jakarta.websocket`) — `@ServerEndpoint`
+- **Real-Time:** Java WebSocket API (`jakarta.websocket`)  `@ServerEndpoint`
 - **Database:** PostgreSQL (local) / Neon (production)
 - **ORM:** Hibernate with HQL/Criteria API
 - **Connection Pool:** HikariCP
@@ -58,8 +58,7 @@ mvn clean package
 
 Or run with Tomcat Maven plugin:
 
-```bash
-mvn tomcat7:run
+
 # Or configure Tomcat 10 in your IDE
 ```
 

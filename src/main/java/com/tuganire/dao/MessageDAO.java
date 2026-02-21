@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.Collections;
 
 /**
- * Hibernate-based DAO for Message, MessageStatus, Reaction. No raw SQL/JDBC.
+ * Hibernate-based DAO for Message, MessageStatus, Reaction.
  */
 public class MessageDAO {
 
