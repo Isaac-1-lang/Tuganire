@@ -9,6 +9,7 @@ import org.hibernate.query.Query;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
 
 /**
  * Hibernate-based DAO for Message, MessageStatus, Reaction. No raw SQL/JDBC.
@@ -37,7 +38,8 @@ public class MessageDAO {
             q.setFirstResult(offset);
             List<Message> list = q.list();
             // Return in chronological order (oldest first) for display
-            return list.reversed();
+            Collections.reverse(list);
+            return list;
         }
     }
 

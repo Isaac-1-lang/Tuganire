@@ -7,7 +7,7 @@
     <groupId>com.tuganire</groupId>
     <artifactId>tuganire</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Tuganire - Real-Time Chat Application</name>
+    <name>Tuganire</name>
     <packaging>war</packaging>
 
     <properties>
@@ -84,6 +84,20 @@
             <groupId>io.github.cdimascio</groupId>
             <artifactId>dotenv-java</artifactId>
             <version>3.0.0</version>
+        </dependency>
+        <!-- SLF4J implementation - surfaces startup errors in Tomcat logs -->
+        <!-- SLF4J API -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+
+        <!-- SLF4J implementation -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
         </dependency>
         <!-- JUnit (test) -->
         <dependency>

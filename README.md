@@ -112,6 +112,24 @@ Connect to `ws://host/tuganire/ws/chat`. Messages (JSON):
 - `{"type":"REACTION","messageId":42,"emoji":"👍"}`
 - `{"type":"JOIN_ROOM","roomId":1}`
 
+## Troubleshooting
+
+### "One or more listeners failed to start" when deploying to Tomcat
+
+This usually means the `.env` file is missing or not found. The `HibernateContextListener` needs `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD`.
+
+1. **Create `.env`** in the project root: `cp env.example .env` (or copy manually)
+2. **Edit `.env`** with your PostgreSQL credentials
+3. **Create the database**: `CREATE DATABASE tuganire;` in PostgreSQL
+4. **If using IntelliJ Tomcat**:
+   - Run → Edit Configurations → select your Tomcat config
+   - Under "Startup/Connection", ensure **Working directory** is the project root (`$MODULE_WORKING_DIR$`)
+   - Or add VM option: `-Dtuganire.project.dir=C:\full\path\to\tuganire` (your actual path)
+
+### SLF4J "No SLF4J providers" warning
+
+Harmless. The project includes `slf4j-simple` so startup errors are logged. If you see this, the real error (e.g. missing `.env`) should appear just above it in the Tomcat console.
+
 ## Production (Neon)
 
 Update `.env`:
