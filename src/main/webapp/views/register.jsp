@@ -10,8 +10,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register — Tuganire</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <title> Tuganire</title>
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>">
 </head>
 <body class="auth-page">
     <main class="auth-card">

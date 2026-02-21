@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tuganire — Chat</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="<c:url value='/css/style.css'/>">
 </head>
 <body class="chat-layout">
     <aside class="sidebar">
@@ -74,6 +74,6 @@
             currentRoomId: ${currentRoom != null ? currentRoom.id : 0}
         };
     </script>
-    <script src="${pageContext.request.contextPath}/js/chat.js"></script>
+    <script src="<c:url value='/js/chat.js'/>"></script>
 </body>
 </html>

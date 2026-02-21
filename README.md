@@ -130,6 +130,12 @@ This usually means the `.env` file is missing or not found. The `HibernateContex
 
 Harmless. The project includes `slf4j-simple` so startup errors are logged. If you see this, the real error (e.g. missing `.env`) should appear just above it in the Tomcat console.
 
+### CSS not loading (plain white / unstyled page)
+
+1. **Hard refresh** the page (Ctrl+Shift+R or Cmd+Shift+R) to clear cached 404s.
+2. In browser DevTools → Network tab, check if `style.css` returns **200** or **404**. A 404 usually means a wrong context path.
+3. Ensure the app uses `<c:url value='/css/style.css'/>` (JSTL) for paths—this handles the context path correctly when deployed at `/tuganire` or `/tuganire_war_exploded`.
+
 ## Production (Neon)
 
 Update `.env`:
