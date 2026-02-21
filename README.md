@@ -150,7 +150,7 @@ HIBERNATE_HBM2DDL_AUTO=validate
 - Passwords hashed with jBCrypt
 - CSRF tokens on POST forms
 - Input sanitization to prevent XSS
-- `.env` never committed — listed in `.gitignore`
+- `.env` never committed  listed in `.gitignore`
 
 ## License
 

@@ -32,7 +32,7 @@ public class Message {
     @Column(name = "media_url", length = 500)
     private String mediaUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade  = CascadeType.ALL)
     @JoinColumn(name = "reply_to_id")
     private Message replyTo;
 

@@ -20,12 +20,12 @@ public class MessageStatus {
     @EmbeddedId
     private MessageStatusId id = new MessageStatusId();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade  = CascadeType.ALL)
     @MapsId("messageId")
     @JoinColumn(name = "message_id", nullable = false)
     private Message message;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade  = CascadeType.ALL)
     @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

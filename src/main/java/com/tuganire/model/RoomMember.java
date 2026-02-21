@@ -20,12 +20,12 @@ public class RoomMember {
     @EmbeddedId
     private RoomMemberId id = new RoomMemberId();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade  = CascadeType.ALL)
     @MapsId("roomId")
     @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,cascade  = CascadeType.ALL)
     @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

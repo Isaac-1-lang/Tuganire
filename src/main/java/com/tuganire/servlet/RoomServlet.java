@@ -2,7 +2,6 @@ package com.tuganire.servlet;
 
 import com.google.gson.Gson;
 import com.tuganire.model.Room;
-import com.tuganire.model.RoomType;
 import com.tuganire.service.ChatService;
 import com.tuganire.service.RoomService;
 

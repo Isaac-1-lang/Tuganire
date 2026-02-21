@@ -6,8 +6,6 @@ import com.tuganire.util.JwtUtil;
 import jakarta.websocket.HandshakeResponse;
 import jakarta.websocket.server.HandshakeRequest;
 import jakarta.websocket.server.ServerEndpointConfig;
-
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
