@@ -29,7 +29,7 @@ public class ChatPageServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         Integer userId = (Integer) req.getAttribute("userId");
         if (userId == null) {
-            res.sendRedirect(req.getContextPath() + "/views/login.jsp?redirect=/chat");
+            res.sendRedirect(req.getContextPath() + "/views/login.jsp");
             return;
         }
 

@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Redirects / to /chat. AuthFilter ensures only authenticated users reach here.
  */
-@WebServlet(urlPatterns = {"", "/"})
+@WebServlet(urlPatterns = {""})
 public class IndexServlet extends HttpServlet {
 
     @Override

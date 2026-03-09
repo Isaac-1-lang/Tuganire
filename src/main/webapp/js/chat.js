@@ -113,12 +113,19 @@
         if (!messagesEl) return;
         const isOwn = data.senderId === ctx.currentUserId;
         const div = document.createElement('div');
-        div.className = 'message' + (isOwn ? ' own' : '');
+        div.className = 'message-row' + (isOwn ? ' own' : '');
         div.dataset.messageId = data.id;
+        
+        const avatarLetter = data.senderUsername ? data.senderUsername.substring(0, 1).toUpperCase() : '?';
+        const timeStr = data.createdAt ? new Date(data.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
         div.innerHTML = `
-            <span class="msg-sender">${escapeHtml(data.senderUsername || '')}</span>
-            <p class="msg-content">${escapeHtml(data.content || '')}</p>
-            <span class="msg-time">${data.createdAt ? new Date(data.createdAt).toLocaleTimeString() : ''}</span>
+            <div class="message-avatar">${escapeHtml(avatarLetter)}</div>
+            <div class="message-content-wrap">
+                <span class="message-sender-name">${escapeHtml(data.senderUsername || '')}</span>
+                <div class="message-bubble">${escapeHtml(data.content || '')}</div>
+                <span class="message-time">${timeStr}</span>
+            </div>
         `;
         messagesEl.appendChild(div);
     }
