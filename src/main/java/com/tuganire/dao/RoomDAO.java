@@ -60,7 +60,7 @@ public class RoomDAO {
     public Room save(Room room) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
-            session.persist(room);
+            room  = (Room) session.merge(room);
             session.getTransaction().commit();
             return room;
         }
@@ -69,8 +69,14 @@ public class RoomDAO {
     public void addMember(Room room, User user) {
         try (Session session = sessionFactory.openSession()) {
             session.beginTransaction();
-            RoomMember rm = new RoomMember(room, user);
+
+            Room managedRoom = session.get(Room.class, room.getId());
+            User managedUser = session.get(User.class, user.getId());
+
+            RoomMember rm = new RoomMember(managedRoom, managedUser);
+
             session.persist(rm);
+
             session.getTransaction().commit();
         }
     }
