@@ -20,7 +20,6 @@ public class ChatService {
     private final MessageDAO messageDAO = new MessageDAO();
     private final RoomDAO roomDAO = new RoomDAO();
     private final UserDAO userDAO = new UserDAO();
-
     /**
      * Send a message. User must be a member of the room.
      */
