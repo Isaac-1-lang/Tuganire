@@ -42,6 +42,6 @@ public class HttpSessionConfigurator extends ServerEndpointConfig.Configurator {
             config.getUserProperties().put(USER_ID, JwtUtil.getUserId(jwt));
             config.getUserProperties().put(USERNAME, JwtUtil.getUsername(jwt));
         }
-        // If jwt is null, we don't put userId - ChatEndpoint will reject in @OnOpen
+        // If jwt is null, we don't put userId  ChatEndpoint will reject in @OnOpen
     }
 }

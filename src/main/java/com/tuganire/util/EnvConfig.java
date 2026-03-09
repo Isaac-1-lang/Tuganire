@@ -67,10 +67,7 @@ public final class EnvConfig {
      */
     public static String getRequired(String key) {
         return get(key).orElseThrow(() ->
-                new IllegalStateException("Missing required config: " + key + ". " +
-                        "Create .env from env.example in the project root and set DB_URL, DB_USERNAME, DB_PASSWORD. " +
-                        "If running from Tomcat/IDE, ensure Working directory is the project root, or add VM option: " +
-                        "-Dtuganire.project.dir=<absolute-path-to-project>"));
+                new IllegalStateException("Invalid credentials to access the database! Configure well your .env"));
     }
 
     /**

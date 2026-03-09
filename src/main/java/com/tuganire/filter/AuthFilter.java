@@ -27,8 +27,7 @@ public class AuthFilter extends HttpFilter {
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
-        String path = req.getRequestURI().replace(req.getContextPath(), "");
-        if (path.isEmpty()) path = "/";
+        String path = getPathWithinContext(req);
 
         if (isPublicPath(path)) {
             chain.doFilter(req, res);
@@ -51,14 +50,29 @@ public class AuthFilter extends HttpFilter {
         chain.doFilter(req, res);
     }
 
+    /** Extracts path within context. Handles getRequestURI() vs getContextPath() edge cases. */
+    private String getPathWithinContext(HttpServletRequest req) {
+        String uri = req.getRequestURI();
+        String ctx = req.getContextPath();
+        if (ctx != null && !ctx.isEmpty() && uri != null && uri.startsWith(ctx)) {
+            String path = uri.substring(ctx.length());
+            return path.isEmpty() ? "/" : path;
+        }
+        return (uri != null && !uri.isEmpty()) ? uri : "/";
+    }
+
     private boolean isPublicPath(String path) {
-        for (String p : PUBLIC_PATHS) {
-            if (path.equals(p) || path.startsWith(p + "?")) return true;
+        if (path == null) return false;
+        String p = path.startsWith("/") ? path : "/" + path;
+        for (String pub : PUBLIC_PATHS) {
+            if (p.equals(pub) || p.startsWith(pub + "?")) return true;
         }
         for (String prefix : PUBLIC_PREFIXES) {
-            if (path.startsWith(prefix)) return true;
+            if (p.startsWith(prefix)) return true;
         }
-        if (path.endsWith(".css") || path.endsWith(".js") || path.endsWith(".ico") || path.endsWith(".png") || path.endsWith(".jpg")) {
+        String lower = p.toLowerCase();
+        if (lower.endsWith(".css") || lower.endsWith(".js") || lower.endsWith(".ico")
+                || lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".svg") || lower.endsWith(".woff2")) {
             return true;
         }
         return false;
