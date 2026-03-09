@@ -31,13 +31,17 @@ public class MessageDAO {
     public List<Message> findByRoomId(int roomId, int limit, int offset) {
         try (Session session = sessionFactory.openSession()) {
             Query<Message> q = session.createQuery(
-                    "FROM Message m WHERE m.room.id = :roomId ORDER BY m.createdAt DESC",
-                    Message.class);
+                    "FROM Message m " +
+                            "JOIN FETCH m.sender " +
+                            "JOIN FETCH m.room " +
+                            "WHERE m.room.id = :roomId " +
+                            "ORDER BY m.createdAt DESC",
+                    Message.class
+            );
             q.setParameter("roomId", roomId);
             q.setMaxResults(limit);
             q.setFirstResult(offset);
             List<Message> list = q.list();
-            // Return in chronological order (oldest first) for display
             Collections.reverse(list);
             return list;
         }

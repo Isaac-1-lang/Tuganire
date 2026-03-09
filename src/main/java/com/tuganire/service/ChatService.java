@@ -50,12 +50,12 @@ public class ChatService {
     /**
      * Load paginated message history for a room. User must be a member.
      */
-    public List<Message> loadHistory(int roomId, int userId, int limit, int offset) {
-        if (!roomDAO.isMember(roomId, userId)) {
-            return List.of();
+        public List<Message> loadHistory(int roomId, int userId, int limit, int offset) {
+            if (!roomDAO.isMember(roomId, userId)) {
+                return List.of();
+            }
+            return messageDAO.findByRoomId(roomId, limit, offset);
         }
-        return messageDAO.findByRoomId(roomId, limit, offset);
-    }
 
     /**
      * Mark message as read for a user.

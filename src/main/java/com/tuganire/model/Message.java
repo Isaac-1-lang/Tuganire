@@ -32,17 +32,17 @@ public class Message {
     @Column(name = "media_url", length = 500)
     private String mediaUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY,cascade  = CascadeType.ALL)
+    @ManyToOne(cascade  = CascadeType.ALL)
     @JoinColumn(name = "reply_to_id")
     private Message replyTo;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
-    @OneToMany(mappedBy = "message", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "message",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MessageStatus> statuses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "message", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "message",cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reaction> reactions = new ArrayList<>();
 
     // ---------- Constructors ----------
