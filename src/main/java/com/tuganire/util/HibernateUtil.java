@@ -37,7 +37,7 @@ public final class HibernateUtil {
         // Connection - from .env
         settings.put(Environment.DATASOURCE, createHikariDataSource());
         settings.put(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect");
-        settings.put(Environment.SHOW_SQL, EnvConfig.get("HIBERNATE_SHOW_SQL", "false").equalsIgnoreCase("true"));
+        settings.put(Environment.SHOW_SQL, EnvConfig.get("HIBERNATE_SHOW_SQL", "true").equalsIgnoreCase("true"));
         settings.put(Environment.HBM2DDL_AUTO, EnvConfig.get("HIBERNATE_HBM2DDL_AUTO", "update"));
         settings.put(Environment.FORMAT_SQL, true);
 
@@ -61,7 +61,6 @@ public final class HibernateUtil {
             throw new RuntimeException("Failed to build Hibernate SessionFactory", e);
         }
     }
-
     private static com.zaxxer.hikari.HikariDataSource createHikariDataSource() {
         com.zaxxer.hikari.HikariDataSource ds = new com.zaxxer.hikari.HikariDataSource();
         ds.setJdbcUrl(EnvConfig.getRequired("DB_URL"));

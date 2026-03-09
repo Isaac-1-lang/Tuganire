@@ -40,15 +40,17 @@ public class UserDAO {
     }
 
     public List<User> searchByUsernameOrEmail(String query, int limit) {
-        if (query == null || query.isBlank()) {
-            return List.of();
-        }
-        String pattern = "%" + query.trim().toLowerCase() + "%";
         try (Session session = sessionFactory.openSession()) {
-            Query<User> q = session.createQuery(
-                    "FROM User u WHERE LOWER(u.username) LIKE :pat OR LOWER(u.email) LIKE :pat ORDER BY u.username",
-                    User.class);
-            q.setParameter("pat", pattern);
+            Query<User> q;
+            if (query == null || query.isBlank()) {
+                q = session.createQuery("FROM User u ORDER BY u.username", User.class);
+            } else {
+                String pattern = "%" + query.trim().toLowerCase() + "%";
+                q = session.createQuery(
+                        "FROM User u WHERE LOWER(u.username) LIKE :pat OR LOWER(u.email) LIKE :pat ORDER BY u.username",
+                        User.class);
+                q.setParameter("pat", pattern);
+            }
             q.setMaxResults(Math.min(limit, 50));
             return q.list();
         }

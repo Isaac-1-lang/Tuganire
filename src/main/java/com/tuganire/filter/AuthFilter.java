@@ -28,6 +28,7 @@ public class AuthFilter extends HttpFilter {
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
         String path = getPathWithinContext(req);
+        System.out.println("AuthFilter: path = " + path + "| "+ isPublicPath(path));
 
         if (isPublicPath(path)) {
             chain.doFilter(req, res);

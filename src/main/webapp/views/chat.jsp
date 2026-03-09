@@ -254,6 +254,40 @@
             overflow-y: auto;
         }
 
+        .people-panel {
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 0.5rem 0;
+            max-height: 180px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            padding: 0 1rem 0.4rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .people-list {
+            overflow-y: auto;
+        }
+
+        .people-list .user-item {
+            padding: 0.55rem 1rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            border-top: 1px solid transparent;
+            border-bottom: 1px solid transparent;
+        }
+
+        .people-list .user-item:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border);
+        }
+
         .room-item {
             display: flex;
             align-items: center;
@@ -480,6 +514,12 @@
             <input type="text" id="user-search" placeholder="Search users to start DM..." autocomplete="off">
             <div id="search-results" class="search-results"></div>
         </div>
+        <div class="people-panel">
+            <div class="panel-title">People</div>
+            <div id="all-users-list" class="people-list">
+                <div class="user-item">Loading users...</div>
+            </div>
+        </div>
         <div class="room-list">
             <c:forEach var="room" items="${rooms}">
                 <a href="${pageContext.request.contextPath}/chat?roomId=${room.id}" class="room-item ${currentRoom != null && currentRoom.id == room.id ? 'active' : ''}" data-room-id="${room.id}">
@@ -528,9 +568,9 @@
     <script>
         window.TUGANIRE = {
             contextPath: "${pageContext.request.contextPath}",
-            currentUserId: ${currentUser != null ? currentUser.id : 0},
+            currentUserId: Number("${currentUser != null ? currentUser.id : 0}"),
             currentUsername: "${currentUser != null ? currentUser.username : ''}",
-            currentRoomId: ${currentRoom != null ? currentRoom.id : 0}
+            currentRoomId: Number("${currentRoom != null ? currentRoom.id : 0}")
         };
     </script>
     <script src="<c:url value='/js/chat.js'/>"></script>
