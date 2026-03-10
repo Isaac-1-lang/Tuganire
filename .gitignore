@@ -1,6 +1,4 @@
 # Environment - NEVER commit secrets!
-.env
-.env.local
 .env.*.local
 
 # Maven
@@ -13,7 +11,6 @@ pom.xml.versionsBackup
 # IDE
 .idea/
 *.iml
-.vscode/
 *.swp
 *.swo
 *~
@@ -32,3 +29,5 @@ logs/
 *.war
 !mvnw
 !mvnw.cmd
+config.bat
+node_modules
