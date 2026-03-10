@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    env_file:
+      - tuganire.env
+    environment:
+      POSTGRES_DB: tuganire
+      POSTGRES_USER: tuganire_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    restart: always
+    env_file:
+      - tuganire.env
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./target/tuganire.war:/usr/local/tomcat/webapps/tuganire.war
+
+volumes:
+  db_data:
