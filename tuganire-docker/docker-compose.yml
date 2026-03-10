@@ -1,31 +1,60 @@
 version: "3.9"
 
+# Docker Development Setup - Uses containerized PostgreSQL
+# For local development without Docker, use your IDE with local PostgreSQL
+
 services:
   db:
-    image: postgres:15
-    restart: always
-    env_file:
-      - tuganire.env
+    image: postgres:15-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: tuganire
-      POSTGRES_USER: tuganire_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: tuganire_data_storage
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 121402pr0732021
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"  # Use 5433 to avoid conflict with local PostgreSQL
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tuganire_data_storage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
-    build: .
-    restart: always
-    env_file:
-      - tuganire.env
+    build:
+      context: ..
+      dockerfile: tuganire-docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/tuganire_data_storage
+      DB_USERNAME: postgres
+      DB_PASSWORD: 121402pr0732021
+      JWT_SECRET: eyochatwithJ3v3w3s0cketz!@
+      JWT_EXPIRY_HOURS: 24
+      HIBERNATE_HBM2DDL_AUTO: update
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
-      - "8080:8080"
+      - "8082:8082"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./target/tuganire.war:/usr/local/tomcat/webapps/tuganire.war
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
 
 volumes:
   db_data:

@@ -1,0 +1,41 @@
+version: "3.9"
+
+# Connect Docker app to your LOCAL PostgreSQL (running on host machine)
+# Usage: docker-compose -f docker-compose.local-db.yml up -d
+# Note: Database must be running on host machine
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: tuganire-docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      # Use host.docker.internal to connect to host machine's PostgreSQL
+      DB_URL: jdbc:postgresql://host.docker.internal:5432/tuganire_data_storage
+      DB_USERNAME: postgres
+      DB_PASSWORD: 121402pr0732021
+      JWT_SECRET: eyochatwithJ3v3w3s0cketz!@
+      JWT_EXPIRY_HOURS: 24
+      HIBERNATE_HBM2DDL_AUTO: update
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app

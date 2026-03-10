@@ -1,5 +1,5 @@
 /**
- * Tuganire — Premium Real-Time Chat Client
+ * Tuganire Premium Real-Time Chat Client
  * Features: Connection status, online indicators, typing animations,
  * read receipts, toasts, scroll-to-bottom, theme toggle, mobile drawer
  */
