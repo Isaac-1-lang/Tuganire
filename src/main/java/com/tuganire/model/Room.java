@@ -28,6 +28,12 @@ public class Room {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    @Column(length = 255)
+    private String description;
+
+    @Column(length = 500)
+    private String avatar;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -87,6 +93,22 @@ public class Room {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public List<RoomMember> getMembers() {

@@ -86,7 +86,23 @@ public class RoomServlet extends HttpServlet {
                 res.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }
-            res.sendRedirect(req.getContextPath() + "/chat?roomId=" + roomOpt.get().getId());
+            Room room = roomOpt.get();
+            // Set description if provided
+            String desc = req.getParameter("description");
+            if (desc != null && !desc.isBlank()) {
+                room.setDescription(desc.substring(0, Math.min(desc.length(), 255)));
+            }
+            // Add selected members to the room
+            String[] memberIds = req.getParameterValues("memberIds");
+            if (memberIds != null) {
+                for (String mid : memberIds) {
+                    try {
+                        int memberId = Integer.parseInt(mid);
+                        roomService.joinRoom(room.getId(), memberId);
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            res.sendRedirect(req.getContextPath() + "/chat?roomId=" + room.getId());
         }
     }
 
