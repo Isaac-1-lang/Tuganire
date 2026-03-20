@@ -98,6 +98,24 @@ public class ChatService {
         return messageDAO.countUnread(roomId, userId, lastRead);
     }
 
+    /**
+     * Delete a message. Only the sender can delete.
+     * Returns the roomId of the deleted message, or empty if failed.
+     */
+    public Optional<Integer> deleteMessage(int messageId, int userId) {
+        Optional<Message> msgOpt = messageDAO.findById(messageId);
+        if (msgOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        Message msg = msgOpt.get();
+        if (msg.getSender().getId() != userId) {
+            return Optional.empty(); // only sender can delete
+        }
+        int roomId = msg.getRoom().getId();
+        messageDAO.delete(messageId);
+        return Optional.of(roomId);
+    }
+
     private String sanitize(String s) {
         if (s == null) return "";
         return s.replaceAll("<", "&lt;")

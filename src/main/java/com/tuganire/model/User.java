@@ -32,6 +32,9 @@ public class User {
     @Column(length = 500)
     private String avatar;
 
+    @Column(length = 255)
+    private String bio;
+
     @Column(name = "is_online", nullable = false)
     private boolean isOnline = false;
 
@@ -99,6 +102,14 @@ public class User {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
     }
 
     public boolean isOnline() {

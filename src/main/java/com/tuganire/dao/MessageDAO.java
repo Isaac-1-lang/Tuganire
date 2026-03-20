@@ -130,6 +130,20 @@ public class MessageDAO {
     }
 
     /**
+     * Delete a message by id.
+     */
+    public void delete(int messageId) {
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            Message msg = session.get(Message.class, messageId);
+            if (msg != null) {
+                session.remove(msg);
+            }
+            session.getTransaction().commit();
+        }
+    }
+
+    /**
      * Count unread messages in a room for a user (messages after lastReadAt).
      */
     public long countUnread(int roomId, int userId, Instant lastReadAt) {

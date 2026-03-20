@@ -22,7 +22,7 @@ public class AuthFilter extends HttpFilter {
 
     private static final String TOKEN_COOKIE = "token";
     private static final String[] PUBLIC_PATHS = {"/auth/login", "/auth/register", "/auth/logout", "/login", "/register"};
-    private static final String[] PUBLIC_PREFIXES = {"/assets/", "/css/", "/js/", "/static/", "/ws/", "/views/login", "/views/register", "/views/error"};
+    private static final String[] PUBLIC_PREFIXES = {"/assets/", "/css/", "/js/", "/static/", "/ws/", "/uploads/", "/views/login", "/views/register", "/views/error"};
 
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)

@@ -43,6 +43,20 @@ public class UserService {
     }
 
     /**
+     * Update user bio/status text.
+     */
+    public boolean updateBio(int userId, String bio) {
+        Optional<User> userOpt = userDAO.findById(userId);
+        if (userOpt.isEmpty()) {
+            return false;
+        }
+        User user = userOpt.get();
+        user.setBio(bio != null ? bio.substring(0, Math.min(bio.length(), 255)) : null);
+        userDAO.update(user);
+        return true;
+    }
+
+    /**
      * Set user online/offline status.
      */
     public void setOnline(int userId, boolean online) {

@@ -12,6 +12,7 @@ import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * WebSocket endpoint for real-time chat. JWT auth via HttpSessionConfigurator.
- * Maps userId -> Session for broadcasting.
+ * WebSocket endpoint for real-time chat.
+ * Supports: MESSAGE, TYPING, SEEN, REACTION, DELETE_MESSAGE, CALL_SIGNAL, JOIN_ROOM
  */
 @ServerEndpoint(value = "/ws/chat", configurator = HttpSessionConfigurator.class)
 public class ChatEndpoint {
@@ -51,21 +52,23 @@ public class ChatEndpoint {
         this.username = uname;
         USER_SESSIONS.put(userId, session);
         userService.setOnline(userId, true);
-        broadcastUserStatus(userId, username, true);
+
+        // Broadcast with lastSeen
+        broadcastUserStatus(userId, username, true, null);
     }
 
     @OnClose
     public void onClose(Session session) {
         USER_SESSIONS.remove(userId);
         userService.setOnline(userId, false);
-        broadcastUserStatus(userId, username, false);
+        broadcastUserStatus(userId, username, false, Instant.now().toString());
     }
 
     @OnError
     public void onError(Session session, Throwable t) {
         USER_SESSIONS.remove(userId);
         userService.setOnline(userId, false);
-        broadcastUserStatus(userId, username, false);
+        broadcastUserStatus(userId, username, false, Instant.now().toString());
     }
 
     @OnMessage
@@ -78,6 +81,8 @@ public class ChatEndpoint {
                 case "TYPING" -> handleTyping(obj);
                 case "SEEN" -> handleSeen(obj);
                 case "REACTION" -> handleReaction(obj);
+                case "DELETE_MESSAGE" -> handleDeleteMessage(obj);
+                case "CALL_SIGNAL" -> handleCallSignal(obj);
                 case "JOIN_ROOM" -> handleJoinRoom(obj);
                 default -> { /* ignore */ }
             }
@@ -89,8 +94,15 @@ public class ChatEndpoint {
     private void handleMessage(JsonObject obj) {
         int roomId = obj.get("roomId").getAsInt();
         String content = obj.has("content") ? obj.get("content").getAsString() : "";
+        String mediaUrl = obj.has("mediaUrl") && !obj.get("mediaUrl").isJsonNull()
+                ? obj.get("mediaUrl").getAsString() : null;
+        String fileName = obj.has("fileName") && !obj.get("fileName").isJsonNull()
+                ? obj.get("fileName").getAsString() : null;
+        String fileType = obj.has("fileType") && !obj.get("fileType").isJsonNull()
+                ? obj.get("fileType").getAsString() : null;
         Integer replyToId = obj.has("replyToId") && !obj.get("replyToId").isJsonNull()
                 ? obj.get("replyToId").getAsInt() : null;
+
         var msgOpt = chatService.sendMessage(roomId, userId, content, replyToId);
         if (msgOpt.isPresent()) {
             Message m = msgOpt.get();
@@ -103,7 +115,24 @@ public class ChatEndpoint {
             payload.addProperty("content", m.getContent());
             payload.addProperty("replyToId", replyToId != null ? replyToId : 0);
             payload.addProperty("createdAt", m.getCreatedAt().toString());
-            broadcastToRoom(roomId, payload.toString(), userId);
+            // Include file info if present
+            if (mediaUrl != null) {
+                payload.addProperty("mediaUrl", mediaUrl);
+            }
+            if (fileName != null) {
+                payload.addProperty("fileName", fileName);
+            }
+            if (fileType != null) {
+                payload.addProperty("fileType", fileType);
+            }
+            // Get sender avatar
+            userService.findById(userId).ifPresent(u -> {
+                if (u.getAvatar() != null) {
+                    payload.addProperty("senderAvatar", u.getAvatar());
+                }
+            });
+            // Broadcast to everyone INCLUDING the sender
+            broadcastToRoom(roomId, payload.toString(), null);
         }
     }
 
@@ -144,13 +173,61 @@ public class ChatEndpoint {
             payload.addProperty("userId", userId);
             payload.addProperty("username", username);
             payload.addProperty("emoji", emoji);
+            payload.addProperty("roomId", roomId);
             broadcastToRoom(roomId, payload.toString(), null);
         }
     }
 
+    private void handleDeleteMessage(JsonObject obj) {
+        int messageId = obj.get("messageId").getAsInt();
+        var roomIdOpt = chatService.deleteMessage(messageId, userId);
+        if (roomIdOpt.isPresent()) {
+            int roomId = roomIdOpt.get();
+            JsonObject payload = new JsonObject();
+            payload.addProperty("type", "DELETE_MESSAGE");
+            payload.addProperty("messageId", messageId);
+            payload.addProperty("roomId", roomId);
+            payload.addProperty("userId", userId);
+            broadcastToRoom(roomId, payload.toString(), null);
+        }
+    }
+
+    /**
+     * WebRTC call signaling — relay offer/answer/candidate between users.
+     */
+    private void handleCallSignal(JsonObject obj) {
+        int targetUserId = obj.get("targetUserId").getAsInt();
+        String signalType = obj.has("signalType") ? obj.get("signalType").getAsString() : "";
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("type", "CALL_SIGNAL");
+        payload.addProperty("signalType", signalType);
+        payload.addProperty("fromUserId", userId);
+        payload.addProperty("fromUsername", username);
+
+        // Forward specific fields depending on signal type
+        if (obj.has("sdp")) {
+            payload.addProperty("sdp", obj.get("sdp").getAsString());
+        }
+        if (obj.has("candidate")) {
+            payload.add("candidate", obj.get("candidate"));
+        }
+        if (obj.has("roomId")) {
+            payload.addProperty("roomId", obj.get("roomId").getAsInt());
+        }
+
+        // Send directly to the target user
+        Session targetSession = USER_SESSIONS.get(targetUserId);
+        if (targetSession != null && targetSession.isOpen()) {
+            try {
+                targetSession.getBasicRemote().sendText(payload.toString());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     private void handleJoinRoom(JsonObject obj) {
-        // Client signals they're viewing this room - can be used for presence
-        // No broadcast needed for now
+        // Client signals they're viewing this room
     }
 
     private void broadcastToRoom(int roomId, String message, Integer excludeUserId) {
@@ -168,12 +245,15 @@ public class ChatEndpoint {
         }
     }
 
-    private void broadcastUserStatus(int uid, String uname, boolean online) {
+    private void broadcastUserStatus(int uid, String uname, boolean online, String lastSeen) {
         JsonObject payload = new JsonObject();
         payload.addProperty("type", "USER_STATUS");
         payload.addProperty("userId", uid);
         payload.addProperty("username", uname);
         payload.addProperty("isOnline", online);
+        if (lastSeen != null) {
+            payload.addProperty("lastSeen", lastSeen);
+        }
         for (Session s : USER_SESSIONS.values()) {
             try {
                 if (s.isOpen()) {
