@@ -60,7 +60,7 @@
         initUserSearch();
         initThemeToggle();
         initMobileDrawer();
-        initProfileModal();
+        initProfileSettings();
         initEmojiPicker();
         initFileUpload();
         initContextMenu();
@@ -200,9 +200,14 @@
                 }
             }
 
-            // Hide Empty State, Show Chat State
-            document.getElementById('empty-state').style.display = 'none';
-            document.getElementById('active-chat-state').style.display = 'flex';
+            // Hide Empty State & Settings State, Show Chat State
+            const emptyState = document.getElementById('empty-state');
+            const activeChatState = document.getElementById('active-chat-state');
+            const settingsState = document.getElementById('settings-state');
+            
+            if (emptyState) emptyState.style.display = 'none';
+            if (activeChatState) activeChatState.style.display = 'flex';
+            if (settingsState) settingsState.style.display = 'none';
 
             // Push state to browser history
             window.history.pushState({roomId: roomId}, '', `${ctx.contextPath}/chat?roomId=${roomId}`);
@@ -223,6 +228,63 @@
         } catch (error) {
             console.error('Error loading room:', error);
             showToast('System', 'Failed to change conversation.');
+        }
+    }
+
+    async function syncRoomsList(roomIdToSelect) {
+        try {
+            const res = await fetch(baseUrl + '/rooms');
+            if (!res.ok) return;
+            const rooms = await res.json();
+            
+            const roomListEl = document.getElementById('room-list');
+            if (!roomListEl) return;
+            
+            if (rooms.length === 0) {
+                roomListEl.innerHTML = '<p class="empty-hint">Search for people above to start chatting.</p>';
+            } else {
+                roomListEl.innerHTML = rooms.map(room => {
+                    const isActive = Number(ctx.currentRoomId) === Number(room.id) ? 'active' : '';
+                    const avatarLetter = room.name ? room.name.substring(0, 1).toUpperCase() : '?';
+                    let timeStr = '';
+                    if (room.lastMessageAt) {
+                        try {
+                            const d = new Date(room.lastMessageAt);
+                            timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        } catch(e) {}
+                    }
+                    const preview = room.lastMessage ? escapeHtml(room.lastMessage).substring(0, 40) : '';
+                    const badgeHtml = room.unreadCount > 0 ? `<span class="badge" data-room-id="${room.id}">${room.unreadCount}</span>` : `<span class="badge" data-room-id="${room.id}" style="display:none;"></span>`;
+                    
+                    return `
+                    <a href="javascript:void(0)" class="list-item ${isActive}" data-room-id="${room.id}">
+                        <div class="avatar">
+                            ${avatarLetter}
+                            <span class="online-dot" data-room-id="${room.id}"></span>
+                        </div>
+                        <div class="item-details">
+                            <div class="item-header">
+                                <span class="item-name">${escapeHtml(room.name)}</span>
+                                <span class="item-time" data-room-id="${room.id}">${timeStr}</span>
+                            </div>
+                            <span class="item-preview" data-room-id="${room.id}">${preview}</span>
+                        </div>
+                        <div class="item-meta">
+                            ${badgeHtml}
+                        </div>
+                    </a>`;
+                }).join('');
+            }
+            
+            initRoomSwitching();
+            if (roomIdToSelect) {
+                const newLink = roomListEl.querySelector(`.list-item[data-room-id="${roomIdToSelect}"]`);
+                if (newLink) {
+                    loadRoomAsync(roomIdToSelect, newLink);
+                }
+            }
+        } catch (err) {
+            console.error('Error syncing rooms:', err);
         }
     }
 
@@ -687,12 +749,18 @@
                 })
                 .then(users => {
                     renderUsers(results, users, 'No users found');
-                    results.style.display = 'block';
+                    if (q !== '') {
+                        results.style.display = 'block';
+                    } else {
+                        results.style.display = 'none';
+                    }
                     renderUsers(allUsersList, users, 'No users available');
                 })
                 .catch(() => {
                     results.innerHTML = '<div class="empty-hint">Unable to load users</div>';
-                    results.style.display = 'block';
+                    if (q !== '') {
+                        results.style.display = 'block';
+                    }
                     if (allUsersList) {
                         allUsersList.innerHTML = '<div class="empty-hint">Unable to load users</div>';
                     }
@@ -719,17 +787,29 @@
     }
 
     function startDm(userId) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = baseUrl + '/rooms';
-        const typeInput = document.createElement('input');
-        typeInput.type = 'hidden'; typeInput.name = 'type'; typeInput.value = 'DM';
-        const targetInput = document.createElement('input');
-        targetInput.type = 'hidden'; targetInput.name = 'targetUserId'; targetInput.value = userId;
-        form.appendChild(typeInput);
-        form.appendChild(targetInput);
-        document.body.appendChild(form);
-        form.submit();
+        const formData = new URLSearchParams();
+        formData.append('type', 'DM');
+        formData.append('targetUserId', userId);
+
+        fetch(baseUrl + '/rooms', {
+            method: 'POST',
+            body: formData,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        }).then(response => {
+            if (response.redirected) {
+                const url = new URL(response.url);
+                const roomId = url.searchParams.get('roomId');
+                if (roomId) {
+                    syncRoomsList(roomId); // Sync sidebar and load the new room!
+                } else {
+                    window.location.href = response.url;
+                }
+            } else {
+                syncRoomsList();
+            }
+        }).catch(() => {
+            showToast('Error', 'Could not start conversation');
+        });
     }
 
     /* ══════════════════════════════════════
@@ -835,27 +915,32 @@
         const doCreate = () => {
             const name = nameInput?.value?.trim();
             if (!name) return;
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = baseUrl + '/rooms';
-            const input = document.createElement('input');
-            input.type = 'hidden'; input.name = 'name'; input.value = name;
-            form.appendChild(input);
-
+            
+            const formData = new URLSearchParams();
+            formData.append('name', name);
             if (descInput?.value?.trim()) {
-                const descField = document.createElement('input');
-                descField.type = 'hidden'; descField.name = 'description'; descField.value = descInput.value.trim();
-                form.appendChild(descField);
+                formData.append('description', descInput.value.trim());
             }
+            selectedIds.forEach(id => formData.append('memberIds', id));
 
-            selectedIds.forEach(id => {
-                const mi = document.createElement('input');
-                mi.type = 'hidden'; mi.name = 'memberIds'; mi.value = id;
-                form.appendChild(mi);
-            });
-
-            document.body.appendChild(form);
-            form.submit();
+            fetch(baseUrl + '/rooms', {
+                method: 'POST',
+                body: formData,
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            }).then(response => {
+                modal.classList.remove('active');
+                if (response.redirected) {
+                    const url = new URL(response.url);
+                    const roomId = url.searchParams.get('roomId');
+                    if (roomId) {
+                        syncRoomsList(roomId);
+                    } else {
+                        window.location.href = response.url;
+                    }
+                } else {
+                    syncRoomsList();
+                }
+            }).catch(() => showToast('Error', 'Could not create room'));
         };
 
         createBtn?.addEventListener('click', doCreate);
@@ -900,18 +985,31 @@
     }
 
     /* ══════════════════════════════════════
-       PROFILE MODAL
+       PROFILE SETTINGS (SPA View)
        ══════════════════════════════════════ */
-    function initProfileModal() {
+    function initProfileSettings() {
         const btn = document.getElementById('profile-settings-btn');
-        const modal = document.getElementById('profile-modal');
-        const closeBtn = document.getElementById('profile-modal-close');
+        const settingsView = document.getElementById('settings-state');
+        const activeChatView = document.getElementById('active-chat-state');
+        const emptyView = document.getElementById('empty-state');
         const form = document.getElementById('profile-form');
-        if (!btn || !modal) return;
+        
+        if (!btn || !settingsView) return;
 
         btn.addEventListener('click', () => {
-            modal.classList.add('active');
-            // Load current profile
+            // Hide normal chat views
+            if(activeChatView) activeChatView.style.display = 'none';
+            if(emptyView) emptyView.style.display = 'none';
+            
+            // Show settings view
+            settingsView.style.display = 'flex';
+            
+            // Deactivate other tabs
+            document.querySelectorAll('.list-item').forEach(li => li.classList.remove('active'));
+            document.querySelectorAll('.nav-icon-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Load current profile data into form
             fetch(baseUrl + '/profile', {
                 credentials: 'same-origin',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -922,21 +1020,29 @@
                     const avatarPreview = document.getElementById('avatar-preview');
                     if (bioInput) bioInput.value = data.bio || '';
                     if (avatarPreview && data.avatar) {
-                        avatarPreview.innerHTML = `<img src="${escapeHtml(data.avatar)}" alt="Avatar" class="avatar-preview-img">`;
+                        // Put the image inside the avatar preview area
+                        let img = avatarPreview.querySelector('.avatar-preview-img');
+                        if (!img) {
+                            img = document.createElement('img');
+                            img.className = 'avatar-preview-img';
+                            img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; inset: 0;';
+                            avatarPreview.appendChild(img);
+                        }
+                        img.src = escapeHtml(data.avatar);
                     }
                 })
                 .catch(() => { });
-        });
-
-        closeBtn?.addEventListener('click', () => modal.classList.remove('active'));
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('active');
         });
 
         if (form) {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const formData = new FormData(form);
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const origText = submitBtn.textContent;
+                submitBtn.textContent = 'Saving...';
+                submitBtn.disabled = true;
+
                 fetch(baseUrl + '/profile', {
                     method: 'POST',
                     credentials: 'same-origin',
@@ -945,9 +1051,10 @@
                 })
                     .then(r => r.json())
                     .then(data => {
+                        submitBtn.textContent = origText;
+                        submitBtn.disabled = false;
                         if (data.success) {
                             showToast('Profile', 'Updated successfully');
-                            modal.classList.remove('active');
                             // Update sidebar avatar
                             if (data.avatar) {
                                 const sidebarAvatar = document.getElementById('sidebar-user-avatar');
@@ -957,8 +1064,35 @@
                             }
                         }
                     })
-                    .catch(() => showToast('Error', 'Failed to update profile'));
+                    .catch(() => {
+                        submitBtn.textContent = origText;
+                        submitBtn.disabled = false;
+                        showToast('Error', 'Failed to update profile');
+                    });
             });
+            
+            // Preview selected image instantly
+            const fileInput = document.getElementById('avatar-file-input');
+            const avatarPreview = document.getElementById('avatar-preview');
+            if(fileInput && avatarPreview) {
+                fileInput.addEventListener('change', () => {
+                    const file = fileInput.files[0];
+                    if(file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            let img = avatarPreview.querySelector('.avatar-preview-img');
+                            if (!img) {
+                                img = document.createElement('img');
+                                img.className = 'avatar-preview-img';
+                                img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; inset: 0;';
+                                avatarPreview.appendChild(img);
+                            }
+                            img.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
         }
     }
 

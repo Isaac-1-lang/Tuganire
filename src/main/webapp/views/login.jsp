@@ -16,22 +16,37 @@
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
                     rel="stylesheet">
                 <style>
-                    *,
-                    *::before,
-                    *::after {
-                        box-sizing: border-box;
-                        margin: 0;
-                        padding: 0;
+                    :root {
+                        --bg-gradient-1: #0f172a;
+                        --bg-gradient-2: #020617;
+                        --bg-gradient-3: #1e1b4b;
+                        --accent: #38bdf8;
+                        --accent-hover: #0284c7;
+                        --glass-bg: rgba(255, 255, 255, 0.05);
+                        --glass-blur: blur(25px);
+                        --glass-border: rgba(255, 255, 255, 0.1);
+                        --text-primary: #ffffff;
+                        --text-secondary: #94a3b8;
+                        --input-bg: rgba(255, 255, 255, 0.06);
+                        --input-border: rgba(255, 255, 255, 0.15);
                     }
 
                     body {
                         font-family: 'Inter', system-ui, -apple-system, sans-serif;
-                        background: #f0f0f5;
-                        color: #0f172a;
+                        background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+                        background-size: 400% 400%;
+                        animation: gradientBG 15s ease infinite;
+                        color: var(--text-primary);
                         line-height: 1.6;
                         min-height: 100vh;
                         display: flex;
-                        padding: 1.25rem;
+                        padding: 1rem;
+                    }
+
+                    @keyframes gradientBG {
+                        0% { background-position: 0% 50%; }
+                        50% { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
                     }
 
                     /* ── Split Layout ── */
@@ -42,8 +57,9 @@
                         width: 100%;
                         border-radius: 20px;
                         overflow: hidden;
-                        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
-                        background: #ffffff;
+                        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+                        background: transparent;
+                        border: 1px solid var(--glass-border);
                     }
 
                     /* ── Left: Form Side ── */
@@ -53,7 +69,10 @@
                         justify-content: center;
                         padding: 3rem 4rem;
                         position: relative;
-                        background: #ffffff;
+                        background: var(--glass-bg);
+                        backdrop-filter: var(--glass-blur);
+                        -webkit-backdrop-filter: var(--glass-blur);
+                        border-right: 1px solid var(--glass-border);
                     }
 
                     .brand {
@@ -64,9 +83,10 @@
                         align-items: center;
                         gap: 0.6rem;
                         font-weight: 700;
-                        font-size: 1rem;
-                        color: #0f172a;
+                        font-size: 1.15rem;
+                        color: var(--text-primary);
                         text-decoration: none;
+                        letter-spacing: -0.02em;
                     }
 
                     .brand-logo {
@@ -75,28 +95,22 @@
                         object-fit: contain;
                     }
 
-                    .brand-dot {
-                        width: 10px;
-                        height: 10px;
-                        background: #0f1422;
-                        border-radius: 50%;
-                    }
-
                     .auth-content {
                         max-width: 360px;
                         width: 100%;
+                        margin-top: 2rem;
                     }
 
                     .auth-content h1 {
                         font-size: 2rem;
                         font-weight: 700;
-                        color: #0f172a;
+                        color: var(--text-primary);
                         margin-bottom: 0.5rem;
                         letter-spacing: -0.02em;
                     }
 
                     .auth-subtitle {
-                        color: #64748b;
+                        color: var(--text-secondary);
                         font-size: 0.95rem;
                         margin-bottom: 2rem;
                     }
@@ -110,32 +124,33 @@
                         display: block;
                         font-size: 0.875rem;
                         font-weight: 500;
-                        color: #344155;
-                        margin-bottom: 0.4rem;
+                        color: var(--text-secondary);
+                        margin-bottom: 0.5rem;
                     }
 
                     .auth-form input[type="text"],
                     .auth-form input[type="password"],
                     .auth-form input[type="email"] {
                         width: 100%;
-                        padding: 0.65rem 0.875rem;
-                        border: 1px solid #d1d5db;
-                        border-radius: 8px;
-                        background: #ffffff;
-                        color: #0f172a;
+                        padding: 0.75rem 1rem;
+                        border: 1px solid var(--input-border);
+                        border-radius: 12px;
+                        background: var(--input-bg);
+                        color: var(--text-primary);
                         font-size: 0.95rem;
                         font-family: 'Inter', sans-serif;
-                        transition: border-color 0.2s, box-shadow 0.2s;
+                        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
                     }
 
                     .auth-form input:focus {
                         outline: none;
-                        border-color: #0f1422;
-                        box-shadow: 0 0 0 3px rgba(15, 20, 34, 0.12);
+                        border-color: var(--accent);
+                        background: rgba(255, 255, 255, 0.1);
+                        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
                     }
 
                     .auth-form input::placeholder {
-                        color: #9ca3af;
+                        color: #64748b;
                     }
 
                     .form-options {
@@ -150,46 +165,48 @@
                         display: flex;
                         align-items: center;
                         gap: 0.4rem;
-                        color: #344155;
+                        color: var(--text-secondary);
                         cursor: pointer;
                     }
 
                     .remember-me input[type="checkbox"] {
                         width: 16px;
                         height: 16px;
-                        accent-color: #0f1422;
+                        accent-color: var(--accent);
                         cursor: pointer;
                     }
 
                     .forgot-link {
-                        color: #0f1422;
+                        color: var(--accent);
                         text-decoration: none;
                         font-weight: 500;
                         transition: color 0.2s;
                     }
 
                     .forgot-link:hover {
-                        color: #1e293b;
+                        color: var(--accent-hover);
+                        text-decoration: underline;
                     }
 
                     /* ── Buttons ── */
                     .btn-primary {
                         width: 100%;
-                        padding: 0.75rem 1.5rem;
-                        background: #0f1422;
+                        padding: 0.85rem 1.5rem;
+                        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
                         color: #ffffff;
                         border: none;
-                        border-radius: 8px;
+                        border-radius: 12px;
                         font-size: 0.95rem;
                         font-weight: 600;
                         font-family: 'Inter', sans-serif;
                         cursor: pointer;
-                        transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+                        transition: filter 0.2s, transform 0.1s, box-shadow 0.2s;
+                        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
                     }
 
                     .btn-primary:hover {
-                        background: #1e293b;
-                        box-shadow: 0 4px 14px rgba(15, 20, 34, 0.25);
+                        filter: brightness(1.1);
+                        box-shadow: 0 4px 18px rgba(2, 132, 199, 0.45);
                     }
 
                     .btn-primary:active {
@@ -198,31 +215,13 @@
 
                     /* ── Error Message ── */
                     .error-msg {
-                        background: #fef2f2;
-                        color: #dc2626;
+                        background: rgba(220, 38, 38, 0.15);
+                        color: #fca5a5;
                         font-size: 0.85rem;
                         padding: 0.6rem 0.875rem;
                         border-radius: 8px;
                         margin-bottom: 1rem;
-                        border: 1px solid #fecaca;
-                    }
-
-                    /* ── Divider ── */
-                    .divider {
-                        display: flex;
-                        align-items: center;
-                        gap: 1rem;
-                        margin: 1.5rem 0;
-                        color: #9ca3af;
-                        font-size: 0.8rem;
-                    }
-
-                    .divider::before,
-                    .divider::after {
-                        content: '';
-                        flex: 1;
-                        height: 1px;
-                        background: #e5e7eb;
+                        border: 1px solid rgba(220, 38, 38, 0.3);
                     }
 
                     /* ── Footer ── */
@@ -230,11 +229,11 @@
                         text-align: center;
                         margin-top: 1.5rem;
                         font-size: 0.9rem;
-                        color: #64748b;
+                        color: var(--text-secondary);
                     }
 
                     .auth-footer a {
-                        color: #0f1422;
+                        color: var(--accent);
                         text-decoration: none;
                         font-weight: 600;
                     }
@@ -248,12 +247,11 @@
                         bottom: 2rem;
                         left: 4rem;
                         font-size: 0.8rem;
-                        color: #94a3b8;
+                        color: var(--text-secondary);
                     }
 
                     /* ── Right: Spline Side ── */
                     .auth-right {
-                        background: #0f1422;
                         display: flex;
                         align-items: center;
                         justify-content: center;
@@ -265,6 +263,8 @@
                         width: 100%;
                         height: 100%;
                         border: none;
+                        /* Optional: add slight transparency to the iframe if it's solid, though iframes with solid backgrounds will stay solid */
+                        opacity: 0.95; 
                     }
 
                     /* ── Responsive ── */

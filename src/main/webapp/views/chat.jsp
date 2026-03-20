@@ -1157,6 +1157,41 @@
                         <p>Select a chat or search for someone to begin messaging.</p>
                     </div>
                 </div>
+
+                <!-- Settings State (SPA View) -->
+                <div id="settings-state" style="display: none; flex-direction: column; width: 100%; height: 100%; overflow-y: auto; background: var(--bg-primary); animation: fadeIn 0.3s ease;">
+                    <header class="chat-header" style="border-bottom: 1px solid var(--border); background: var(--bg-primary); padding: 1.25rem 2rem;">
+                        <div class="chat-header-info">
+                            <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em;">Profile Settings</h2>
+                        </div>
+                    </header>
+                    
+                    <div style="flex: 1; overflow-y: auto; padding: 3rem 1.5rem; display: flex; justify-content: center;">
+                        <div class="settings-container" style="width: 100%; max-width: 520px; background: rgba(255, 255, 255, 0.05); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 3rem 2.5rem; box-shadow: 0 12px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: fit-content;">
+                            <h3 style="margin-bottom: 2.5rem; font-size: 1.4rem; font-weight: 600; color: var(--text-primary); text-align: center;">Personalize your profile</h3>
+                            
+                            <form id="profile-form" enctype="multipart/form-data">
+                                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 2.5rem;">
+                                    <label for="avatar-file-input" class="avatar-upload-area" id="avatar-preview" style="width: 140px; height: 140px; border-radius: 50%; background: var(--bg-secondary); border: 2px dashed var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; position: relative; transition: all 0.3s; box-shadow: 0 8px 24px var(--accent-light);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 48px; height: 48px; color: var(--text-muted);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/></svg>
+                                        <div style="position: absolute; inset: 0; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                                            <span style="color: #fff; font-size: 0.85rem; font-weight: 600;">Change Photo</span>
+                                        </div>
+                                    </label>
+                                    <input type="file" name="avatar" id="avatar-file-input" accept="image/*" style="display:none;">
+                                    <p style="text-align: center; font-size: 0.85rem; color: var(--text-secondary); margin-top: 1rem;">Click to upload a new profile picture</p>
+                                </div>
+
+                                <div style="margin-bottom: 2rem;">
+                                    <label style="font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 0.6rem;">Bio / Status</label>
+                                    <input type="text" name="bio" id="profile-bio-input" placeholder="What's on your mind?" maxlength="255" style="width: 100%; padding: 0.9rem 1.25rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.05); color: var(--text-primary); font-size: 0.95rem; font-family: inherit; transition: all 0.2s;" onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)';" onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none';">
+                                </div>
+
+                                <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--accent), var(--accent-hover)); color: #ffffff; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: filter 0.2s, transform 0.1s; box-shadow: 0 4px 14px var(--accent-glow);">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
     </main>
 </div>
 
@@ -1179,28 +1214,7 @@
     </div>
 </div>
 
-<!-- Profile Modal -->
-<div class="profile-modal" id="profile-modal">
-    <div class="profile-modal-content">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-            <h3 style="margin:0;">Profile Settings</h3>
-            <button class="icon-btn" id="profile-modal-close">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <form id="profile-form" enctype="multipart/form-data">
-            <label for="avatar-file-input" class="avatar-upload-area" id="avatar-preview">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:32px;height:32px;color:var(--text-muted);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2"/></svg>
-            </label>
-            <input type="file" name="avatar" id="avatar-file-input" accept="image/*" style="display:none;">
-            <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-bottom:1rem;">Click to upload photo</p>
-            <label style="font-size:0.8rem;color:var(--text-secondary);display:block;margin-bottom:0.25rem;">Bio / Status</label>
-            <input type="text" name="bio" id="profile-bio-input" placeholder="What's on your mind?" maxlength="255">
-            <button type="submit" class="btn-modal primary" style="width:100%;margin-top:1rem;">Save Changes</button>
-        </form>
-    </div>
-</div>
-
+<!-- Removed Old Profile Modal -->
 <!-- Call Modal -->
 <div class="call-modal" id="call-modal">
     <div class="call-modal-content">
