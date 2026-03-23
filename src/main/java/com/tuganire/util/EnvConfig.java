@@ -57,11 +57,13 @@ public final class EnvConfig {
     private EnvConfig() {}
 
     public static Optional<String> get(String key) {
+        String sysVal = System.getenv(key);
+        return sysVal != null && !sysVal.isBlank() ? Optional.of(sysVal.trim()) : Optional.empty();
         if (ENV_VARS.containsKey(key)) {
             return Optional.of(ENV_VARS.get(key));
         }
-        String sysVal = System.getenv(key);
-        return sysVal != null && !sysVal.isBlank() ? Optional.of(sysVal.trim()) : Optional.empty();
+        return Optional.empty();
+        
     }
 
     public static String getRequired(String key) {
