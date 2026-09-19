@@ -43,14 +43,14 @@ public class AuthServlet extends HttpServlet {
 
     private void handleLogin(HttpServletRequest req, HttpServletResponse res) throws IOException {
         if (!CsrfUtil.validate((String) req.getSession().getAttribute("csrfToken"), req.getParameter("csrf"))) {
-            res.sendRedirect(req.getContextPath() + "/views/login.jsp?error=invalid_csrf");
+            res.sendRedirect(req.getContextPath() + "/login?error=invalid_csrf");
             return;
         }
         String usernameOrEmail = req.getParameter("username");
         String password = req.getParameter("password");
         var tokenOpt = authService.login(usernameOrEmail, password);
         if (tokenOpt.isEmpty()) {
-            res.sendRedirect(req.getContextPath() + "/views/login.jsp?error=invalid_credentials");
+            res.sendRedirect(req.getContextPath() + "/login?error=invalid_credentials");
             return;
         }
         String token = tokenOpt.get();
@@ -107,6 +107,6 @@ public class AuthServlet extends HttpServlet {
         cookie.setPath("/");
         cookie.setMaxAge(0);
         res.addCookie(cookie);
-        res.sendRedirect(req.getContextPath() + "/views/login.jsp");
+        res.sendRedirect(req.getContextPath() + "/login");
     }
 }

@@ -471,7 +471,7 @@
     <main class="auth-card">
         <h1>Something went wrong</h1>
         <p class="error-msg">${not empty param.message ? param.message : 'An error occurred. Please try again.'}</p>
-        <a href="${pageContext.request.contextPath}/views/login.jsp" class="btn btn-primary">Back to Login</a>
+        <a href="${pageContext.request.contextPath}/login" class="btn btn-primary">Back to Login</a>
     </main>
 </body>
 </html>

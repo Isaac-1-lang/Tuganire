@@ -329,7 +329,7 @@
                             </form>
 
                             <p class="auth-footer">Already have an account? <a
-                                    href="${pageContext.request.contextPath}/views/login.jsp">Sign in</a></p>
+                                    href="${pageContext.request.contextPath}/login">Sign in</a></p>
                         </div>
 
                         <p class="copyright">&copy; Tuganire <%= java.time.Year.now().getValue() %>

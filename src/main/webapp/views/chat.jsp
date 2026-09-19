@@ -26,7 +26,7 @@
             --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
             --glass-blur: blur(25px);
 
-            --bg-primary: transparent;
+            --bg-primary: #f0fdfa;
             --bg-secondary: rgba(255, 255, 255, 0.4);
             --bg-tertiary: rgba(255, 255, 255, 0.6);
             --bg-hover: rgba(255, 255, 255, 0.8);
@@ -61,6 +61,7 @@
         }
 
         [data-theme="dark"] {
+            --bg-primary: #0f172a;
             --bg-gradient-1: #0f172a;
             --bg-gradient-2: #164e63;
             --bg-gradient-3: #064e3b;
@@ -156,8 +157,9 @@
            ══════════════════════════════════════ */
         .app-layout {
             display: grid;
-            grid-template-columns: var(--nav-width) var(--sidebar-width) 1fr;
+            grid-template-columns: var(--nav-width) var(--sidebar-width) minmax(0, 1fr);
             height: 100vh;
+            height: 100dvh;
             padding: 1.5rem;
             gap: 1.5rem;
             max-width: 1600px;
@@ -168,6 +170,8 @@
            GLASS CARDS BASE
            ══════════════════════════════════════ */
         .glass-card {
+            min-height: 0;
+            min-width: 0;
             background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
@@ -313,7 +317,13 @@
         .search-results .user-item:hover { background: var(--bg-hover); }
 
         /* Sidebar Content */
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 0 0.5rem 1rem; }
+        .sidebar-content { flex: 1; min-height: 0; overflow-y: auto; padding: 0 0.5rem 1rem; }
+        .sidebar-header, .search-container { flex-shrink: 0; }
+        #active-chat-state { min-height: 0; }
+        .chat-header, .input-area { flex-shrink: 0; }
+        .room-loading { padding: 0.6rem 1rem; background: var(--bg-primary); color: var(--text-secondary); }
+        .room-loading[hidden] { display: none; }
+        #message-form button:disabled { opacity: 0.5; cursor: wait; }
         .sidebar-content::-webkit-scrollbar { width: 4px; }
         .sidebar-content::-webkit-scrollbar-track { background: transparent; }
         .sidebar-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -799,7 +809,8 @@
         .sidebar-overlay { display: none; }
 
         @media (max-width: 768px) {
-            .app-layout { grid-template-columns: 1fr; }
+            .app-layout { grid-template-columns: minmax(0, 1fr); padding: 0.5rem; gap: 0; }
+            .main-nav { display: none; }
             .sidebar {
                 position: fixed; left: 0; top: 0; bottom: 0;
                 width: 85%; max-width: 320px;
@@ -1031,6 +1042,7 @@
 
     <!-- ── Main Chat Area ── -->
     <main class="chat-main glass-card">
+        <div id="room-loading" class="room-loading" role="status" hidden>Loading conversation...</div>
         <!-- Active Chat State -->
         <div id="active-chat-state" style="display: ${currentRoom != null ? 'flex' : 'none'}; flex-direction: column; height: 100%;">
             <header class="chat-header">
@@ -1048,7 +1060,7 @@
                         <h2 id="current-room-name">${currentRoom != null ? currentRoom.name : ''}</h2>
                         <div class="header-status" id="header-status">
                             <span class="status-dot" id="header-status-dot"></span>
-                            <span id="header-status-text">Offline</span>
+                            <span id="header-status-text">Conversation</span>
                         </div>
                     </div>
                 </div>
@@ -1137,6 +1149,7 @@
                     </form>
                     <div class="emoji-picker" id="emoji-picker"></div>
                 </div>
+        </div>
                 <div class="empty-state" id="empty-state" style="display: ${currentRoom == null ? 'flex' : 'none'};">
                     <header class="chat-header" style="border-bottom: none; width: 100%;">
                         <div class="chat-header-info">
@@ -1273,6 +1286,6 @@
         currentRoomId: Number("${currentRoom != null ? currentRoom.id : 0}")
     };
 </script>
-<script src="${pageContext.request.contextPath}/js/chat.js"></script>
+<script src="${pageContext.request.contextPath}/js/chat.js?v=20260919-2"></script>
 </body>
 </html>

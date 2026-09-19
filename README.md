@@ -64,7 +64,7 @@ Or run with Tomcat Maven plugin:
 
 ### 4. Access the app
 
-- **Login:** `http://localhost:8080/tuganire/views/login.jsp`
+- **Login:** `http://localhost:8080/tuganire/login`
 - **Register:** `http://localhost:8080/tuganire/views/register.jsp`
 - **Chat:** `http://localhost:8080/tuganire/chat`
 

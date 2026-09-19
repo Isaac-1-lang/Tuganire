@@ -12,6 +12,9 @@
     const baseUrl = ctx.contextPath || '';
     const wsBase = (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host + baseUrl;
     let ws = null;
+    let roomRequest = null;
+    let roomLoading = false;
+    let scrollWatcherInitialized = false;
     let typingTimeout = null;
     let unreadCount = 0;
     let reconnectAttempts = 0;
@@ -58,6 +61,7 @@
 
         initRoomSwitching();
         initUserSearch();
+        initNewRoomModal();
         initThemeToggle();
         initMobileDrawer();
         initProfileModal();
@@ -114,7 +118,9 @@
     function sendWs(obj) {
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(obj));
+            return true;
         }
+        return false;
     }
 
     /* ══════════════════════════════════════
@@ -161,16 +167,24 @@
     }
 
     async function loadRoomAsync(roomId, clickedEl) {
+        if (roomRequest) roomRequest.abort();
+        const request = new AbortController();
+        roomRequest = request;
+        const timeout = setTimeout(() => request.abort(), 15000);
+        setRoomLoading(true);
         try {
-            // Update UI Active State in sidebar
-            document.querySelectorAll('#room-list .list-item').forEach(el => el.classList.remove('active'));
-            if (clickedEl) clickedEl.classList.add('active');
-
             // Fetch history via AJAX
-            const response = await fetch(`${ctx.contextPath}/messages?roomId=${roomId}&page=1`);
+            const response = await fetch(`${baseUrl}/messages?roomId=${encodeURIComponent(roomId)}&limit=50&offset=0`, {
+                signal: request.signal,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
             if (!response.ok) throw new Error('Failed to load messages');
             
             const data = await response.json();
+            if (request !== roomRequest || request.signal.aborted) return;
+            if (!Array.isArray(data)) throw new Error('Invalid message history');
+            document.querySelectorAll('#room-list .list-item').forEach(el => el.classList.remove('active'));
+            if (clickedEl) clickedEl.classList.add('active');
             
             // Switch current state
             ctx.currentRoomId = roomId;
@@ -184,8 +198,13 @@
             document.getElementById('current-room-name').textContent = roomName;
             const avatarEl = document.getElementById('current-room-avatar');
             if (avatarEl) {
-                avatarEl.innerHTML = `${roomLetter}<span class="online-dot" id="header-online-dot"></span>`;
+                avatarEl.innerHTML = `${escapeHtml(roomLetter)}<span class="online-dot" id="header-online-dot"></span>`;
             }
+            document.getElementById('header-status-text').textContent = 'Conversation';
+            document.getElementById('header-status-dot').classList.remove('online');
+            if (typingIndicator) typingIndicator.innerHTML = '';
+            document.getElementById('sidebar')?.classList.remove('open');
+            document.getElementById('sidebar-overlay')?.classList.remove('visible');
 
             // Render Messages
             if (messagesEl) {
@@ -221,9 +240,28 @@
                 badge.textContent = '';
             }
         } catch (error) {
+            if (request !== roomRequest) return;
             console.error('Error loading room:', error);
-            showToast('System', 'Failed to change conversation.');
+            showToast('System', request.signal.aborted
+                ? 'Loading took too long. Select the conversation to retry.'
+                : 'Failed to change conversation. Please try again.');
+        } finally {
+            clearTimeout(timeout);
+            if (request === roomRequest) {
+                roomRequest = null;
+                setRoomLoading(false);
+            }
         }
+    }
+
+    function setRoomLoading(loading) {
+        roomLoading = loading;
+        const indicator = document.getElementById('room-loading');
+        if (indicator) indicator.hidden = !loading;
+        document.getElementById('active-chat-state')?.setAttribute('aria-busy', String(loading));
+        document.querySelectorAll('#message-form button, #message-form input').forEach(el => {
+            el.disabled = loading;
+        });
     }
 
     /* ══════════════════════════════════════
@@ -420,7 +458,8 @@
         const headerDot = document.getElementById('header-online-dot');
         const headerStatusDot = document.getElementById('header-status-dot');
         const headerStatusText = document.getElementById('header-status-text');
-        if (headerDot && headerStatusDot && headerStatusText) {
+        const partnerId = document.getElementById('audio-call-btn')?.dataset.partnerId;
+        if (partnerId && Number(partnerId) === Number(userId) && headerDot && headerStatusDot && headerStatusText) {
             if (isOnline) {
                 headerDot.classList.add('active');
                 headerStatusDot.classList.add('online');
@@ -480,7 +519,8 @@
        SCROLL MANAGEMENT
        ══════════════════════════════════════ */
     function initScrollWatcher() {
-        if (!messagesContainer) return;
+        if (!messagesContainer || scrollWatcherInitialized) return;
+        scrollWatcherInitialized = true;
         const scrollBtn = document.getElementById('scroll-bottom-btn');
 
         messagesContainer.addEventListener('scroll', () => {
@@ -603,9 +643,12 @@
         e.preventDefault();
         const roomId = currentRoomIdEl?.value || ctx.currentRoomId;
         const content = (messageInput?.value || '').trim();
-        if (!roomId || !content) return;
+        if (!roomId || !content || roomLoading) return;
 
-        sendWs({ type: 'MESSAGE', roomId: parseInt(roomId), content });
+        if (!sendWs({ type: 'MESSAGE', roomId: parseInt(roomId), content })) {
+            showToast('Connection', 'Not connected yet. Your draft is saved; try sending again when connected.');
+            return;
+        }
         messageInput.value = '';
         messageInput.focus();
         sendWs({ type: 'TYPING', roomId: parseInt(roomId), isTyping: false });
@@ -631,6 +674,8 @@
         if (!input || !results) return;
 
         let searchTimeout;
+        let searchVersion = 0;
+        results.style.display = 'none';
 
         const bindClicks = (container) => {
             if (!container) return;
@@ -672,9 +717,12 @@
             bindClicks(container);
         };
 
-        const runSearch = (q) => {
+        const runSearch = (q, version = ++searchVersion) => {
             const url = baseUrl + '/users/search?q=' + encodeURIComponent(q);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000);
             fetch(url, {
+                signal: controller.signal,
                 credentials: 'same-origin',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
@@ -686,27 +734,25 @@
                     return r.json();
                 })
                 .then(users => {
-                    renderUsers(results, users, 'No users found');
-                    results.style.display = 'block';
-                    renderUsers(allUsersList, users, 'No users available');
+                    if (version !== searchVersion) return;
+                    results.style.display = 'none';
+                    renderUsers(allUsersList, users, q ? 'No users found' : 'No users available');
                 })
                 .catch(() => {
-                    results.innerHTML = '<div class="empty-hint">Unable to load users</div>';
-                    results.style.display = 'block';
+                    if (version !== searchVersion) return;
+                    results.style.display = 'none';
                     if (allUsersList) {
                         allUsersList.innerHTML = '<div class="empty-hint">Unable to load users</div>';
                     }
-                });
+                })
+                .finally(() => clearTimeout(timeout));
         };
 
         input.addEventListener('input', () => {
             clearTimeout(searchTimeout);
             const q = input.value.trim();
-            searchTimeout = setTimeout(() => runSearch(q), 300);
-        });
-
-        input.addEventListener('focus', () => {
-            if (!input.value.trim()) runSearch('');
+            const version = ++searchVersion;
+            searchTimeout = setTimeout(() => runSearch(q, version), 300);
         });
 
         document.addEventListener('click', (e) => {
@@ -883,7 +929,6 @@
     function initMobileDrawer() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
-        const menuBtn = document.getElementById('mobile-menu-btn') || document.getElementById('mobile-menu-btn-empty');
         if (!sidebar || !overlay) return;
 
         const openDrawer = () => {
@@ -895,7 +940,9 @@
             overlay.classList.remove('visible');
         };
 
-        menuBtn?.addEventListener('click', openDrawer);
+        document.querySelectorAll('#mobile-menu-btn, #mobile-menu-btn-empty').forEach(btn => {
+            btn.addEventListener('click', openDrawer);
+        });
         overlay.addEventListener('click', closeDrawer);
     }
 

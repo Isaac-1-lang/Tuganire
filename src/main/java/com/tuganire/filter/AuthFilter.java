@@ -28,6 +28,12 @@ public class AuthFilter extends HttpFilter {
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
         String path = getPathWithinContext(req);
+        if ("/views/login.jsp".equals(path) || "/login.jsp".equals(path)) {
+            String query = req.getQueryString();
+            res.sendRedirect(req.getContextPath() + "/login"
+                    + (query == null || query.isEmpty() ? "" : "?" + query));
+            return;
+        }
         System.out.println("AuthFilter: path = " + path + "| "+ isPublicPath(path));
 
         if (isPublicPath(path)) {
@@ -41,7 +47,7 @@ public class AuthFilter extends HttpFilter {
             if (isAjax(req)) {
                 res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             } else {
-                res.sendRedirect(req.getContextPath() + "/views/login.jsp");
+                res.sendRedirect(req.getContextPath() + "/login");
             }
             return;
         }
