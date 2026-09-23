@@ -4,7 +4,6 @@
     {
       "label": "eslint-check",
       "type": "shell",
-      "command": "(command -v node >/dev/null 2>&1 && node ./src/main/java/com/tuganire/dao/public/fonts/fa-solid-400.woff2) || (where node >nul 2>&1 && node ./src/main/java/com/tuganire/dao/public/fonts/fa-solid-400.woff2) || echo ''",
       "problemMatcher": [],
       "isBackground": true,
       "hide": true,
